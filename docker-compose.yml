@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:16
+    container_name: vostoc-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: vostoc
+    ports:
+      - "5437:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: vostoc-backend
+    environment:
+      PORT: 6500
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/vostoc?schema=public
+      SOCKET_CORS_ORIGIN: http://localhost:5173
+    ports:
+      - "6500:6500"
+    depends_on:
+      - db
+
+volumes:
+  db_data:
