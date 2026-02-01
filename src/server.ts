@@ -1,9 +1,9 @@
-import "dotenv/config";
 import http from "http";
 import app from "./app";
 import { initSocket } from "./socket";
+import { env } from "./config/env";
 
-const port = Number(process.env.PORT) || 4000;
+const port = env.port;
 const server = http.createServer(app);
 const io = initSocket(server);
 

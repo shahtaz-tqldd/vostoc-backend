@@ -23,3 +23,22 @@
 - Events:
   - `appointments:created`
   - `dashboard:updated`
+
+## Auth
+- POST `/auth/login` with `{ email, password }` to get a JWT.
+- Use `Authorization: Bearer <token>` for protected routes.
+- Admin-only:
+  - POST `/users` to create users (admin, receptionist, doctor)
+  - GET `/users` to list users
+- Any authenticated user:
+  - GET `/users/me`
+
+## Seed admin user
+- Set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` in `.env`.
+- Run: `npm run prisma:seed`
+
+## Structure
+- `src/config/env.ts` loads `.env` once and exposes `env`.
+- `src/helpers/` shared helpers (jwt, password, prisma).
+- `src/middlewares/` shared middlewares.
+- `src/modules/*` contains `routes`, `controller`, `service`, `db`.

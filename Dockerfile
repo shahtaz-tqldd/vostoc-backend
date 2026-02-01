@@ -13,6 +13,6 @@ COPY src ./src
 
 RUN npm run build
 
-EXPOSE 4000
+EXPOSE 6500
 
 CMD ["node", "dist/server.js"]
