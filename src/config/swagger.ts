@@ -134,6 +134,46 @@ const swaggerDefinition = {
           403: { description: "Forbidden" }
         }
       }
+    },
+    "/doctors": {
+      get: {
+        summary: "List doctors",
+        responses: {
+          200: { description: "Doctors" },
+          401: { description: "Unauthorized" }
+        }
+      },
+      post: {
+        summary: "Create doctor (admin/receptionist)",
+        requestBody: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  department_id: { type: "string", format: "uuid" },
+                  specialty: { type: "string" },
+                  contact_number: { type: "string" },
+                  description: { type: "string" },
+                  schedules: {
+                    type: "string",
+                    description: "JSON string. Example: [{\"Mon\":[{\"start_time\":\"09:00\",\"end_time\":\"12:00\"}]}]"
+                  },
+                  image: { type: "string", format: "binary" }
+                },
+                required: ["name", "department_id", "specialty", "contact_number"]
+              }
+            }
+          }
+        },
+        responses: {
+          201: { description: "Doctor created" },
+          400: { description: "Validation error" },
+          403: { description: "Forbidden" }
+        }
+      }
     }
   }
 };

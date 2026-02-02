@@ -33,6 +33,17 @@
 - Any authenticated user:
   - GET `/users/me`
 
+## Departments & Specialties
+- GET `/departments`
+- POST `/departments` (admin)
+- GET `/departments/:departmentId/specialties`
+- POST `/departments/:departmentId/specialties` (admin)
+
+## Doctors
+- GET `/doctors`
+- POST `/doctors` (admin/receptionist, multipart form-data with `image`)
+- `POST /doctors` supports `department_id`, `specialty` (name), `contact_number`, `description`, and `schedules` JSON string
+
 ## Seed admin user
 - Set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` in `.env`.
 - Run: `npm run prisma:seed`

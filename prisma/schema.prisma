@@ -19,6 +19,37 @@ model Appointment {
   updatedAt   DateTime @updatedAt
 }
 
+enum Weekday {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+  SUN
+}
+
+model Department {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  specialties Specialty[]
+  doctors     Doctor[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Specialty {
+  id           String     @id @default(uuid())
+  name         String
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  doctors      Doctor[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([name, departmentId])
+}
+
 enum Role {
   ADMIN
   RECEPTIONIST
@@ -35,4 +66,34 @@ model User {
   updatedAt    DateTime      @updatedAt
 
   doctorAppointments Appointment[] @relation("DoctorAppointments")
+}
+
+model Doctor {
+  id              String           @id @default(uuid())
+  name            String
+  departmentId    String
+  specialtyId     String
+  contactNumber   String           @unique
+  description     String?
+  profileImageUrl String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  department      Department       @relation(fields: [departmentId], references: [id])
+  specialty       Specialty        @relation(fields: [specialtyId], references: [id])
+  schedules       DoctorSchedule[]
+}
+
+model DoctorSchedule {
+  id        String   @id @default(uuid())
+  doctorId  String
+  day       Weekday
+  startTime String
+  endTime   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctor Doctor @relation(fields: [doctorId], references: [id])
+
+  @@index([doctorId, day])
 }

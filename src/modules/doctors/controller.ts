@@ -1,0 +1,70 @@
+import type { NextFunction, Request, Response } from "express";
+import { createDoctorService, listDoctorsService } from "./service";
+
+export const createDoctorController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const {
+      name,
+      department_id: departmentId,
+      specialty,
+      contact_number: contactNumber,
+      description,
+      schedules
+    } = req.body as {
+      name?: string;
+      department_id?: string;
+      specialty?: string;
+      contact_number?: string;
+      description?: string;
+      schedules?: Array<Record<string, { start_time?: string; end_time?: string }[]>> | string;
+    };
+
+    if (!name || !departmentId || !specialty || !contactNumber) {
+      res.status(400).json({
+        error: "name, department_id, specialty, and contact_number are required"
+      });
+      return;
+    }
+
+    let normalizedSchedules: Array<Record<string, { start_time?: string; end_time?: string }[]>> | undefined;
+    if (typeof schedules === "string") {
+      try {
+        normalizedSchedules = JSON.parse(schedules) as Array<
+          Record<string, { start_time?: string; end_time?: string }[]>
+        >;
+      } catch {
+        res.status(400).json({ error: "schedules must be valid JSON" });
+        return;
+      }
+    } else {
+      normalizedSchedules = schedules;
+    }
+
+    const doctor = await createDoctorService({
+      name,
+      departmentId,
+      specialty,
+      contactNumber,
+      description,
+      schedules: normalizedSchedules,
+      image: req.file || undefined
+    });
+
+    res.status(201).json(doctor);
+  } catch (err) {
+    if (err instanceof Error && (err.message.includes("not found") || err.message.includes("Invalid"))) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+};
+
+export const listDoctorsController = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const doctors = await listDoctorsService();
+    res.json(doctors);
+  } catch (err) {
+    next(err);
+  }
+};

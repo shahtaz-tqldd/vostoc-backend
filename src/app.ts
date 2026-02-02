@@ -5,6 +5,8 @@ import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 import appointmentsRouter from "./modules/appointments/routes";
 import authRouter from "./modules/auth/routes";
+import departmentsRouter from "./modules/departments/routes";
+import doctorsRouter from "./modules/doctors/routes";
 import usersRouter from "./modules/users/routes";
 import { env } from "./config/env";
 import { swaggerSpec } from "./config/swagger";
@@ -28,6 +30,8 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/appointments", appointmentsRouter);
 app.use("/auth", authRouter);
+app.use("/departments", departmentsRouter);
+app.use("/doctors", doctorsRouter);
 app.use("/users", usersRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
