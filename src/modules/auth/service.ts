@@ -1,9 +1,9 @@
 import { verifyPassword } from "../../helpers/password";
 import { signToken } from "../../helpers/jwt";
-import { findUserByEmail } from "./db";
+import { findUserByIdentifier } from "./db";
 
-export const loginService = async (email: string, password: string) => {
-  const user = await findUserByEmail(email);
+export const loginService = async (identifier: string, password: string) => {
+  const user = await findUserByIdentifier(identifier);
   if (!user) {
     return null;
   }
@@ -13,10 +13,17 @@ export const loginService = async (email: string, password: string) => {
     return null;
   }
 
-  const token = signToken({ sub: user.id, role: user.role, email: user.email });
+  const token = signToken({ sub: user.id, role: user.role, identifier });
 
   return {
     token,
-    user: { id: user.id, email: user.email, name: user.name, role: user.role }
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      name: user.name,
+      role: user.role
+    }
   };
 };

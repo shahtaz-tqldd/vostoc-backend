@@ -3,14 +3,22 @@ import { loginService } from "./service";
 
 export const loginController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, password } = req.body as { email?: string; password?: string };
+    const { identifier, email, username, phone, password } = req.body as {
+      identifier?: string;
+      email?: string;
+      username?: string;
+      phone?: string;
+      password?: string;
+    };
 
-    if (!email || !password) {
-      res.status(400).json({ error: "email and password are required" });
+    const loginIdentifier = identifier || email || username || phone;
+
+    if (!loginIdentifier || !password) {
+      res.status(400).json({ error: "identifier and password are required" });
       return;
     }
 
-    const result = await loginService(email, password);
+    const result = await loginService(loginIdentifier, password);
 
     if (!result) {
       res.status(401).json({ error: "Invalid credentials" });

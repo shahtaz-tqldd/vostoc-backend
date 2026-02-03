@@ -7,13 +7,22 @@ export const getMeService = async (userId: string) => {
 };
 
 export const createUserService = async (input: {
-  email: string;
+  username: string;
+  email?: string;
+  phone?: string;
   name: string;
   password: string;
   role: Role;
 }) => {
   const passwordHash = await hashPassword(input.password);
-  return createUser({ email: input.email, name: input.name, passwordHash, role: input.role });
+  return createUser({
+    username: input.username,
+    email: input.email || null,
+    phone: input.phone || null,
+    name: input.name,
+    passwordHash,
+    role: input.role
+  });
 };
 
 export const listUsersService = async () => {

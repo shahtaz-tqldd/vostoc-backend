@@ -9,7 +9,14 @@ export const meController = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    res.json({ id: user.id, email: user.email, name: user.name, role: user.role });
+    res.json({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      name: user.name,
+      role: user.role
+    });
   } catch (err) {
     next(err);
   }
@@ -17,21 +24,30 @@ export const meController = async (req: Request, res: Response, next: NextFuncti
 
 export const createUserController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, name, password, role } = req.body as {
+    const { username, email, phone, name, password, role } = req.body as {
+      username?: string;
       email?: string;
+      phone?: string;
       name?: string;
       password?: string;
       role?: "ADMIN" | "RECEPTIONIST" | "DOCTOR";
     };
 
-    if (!email || !name || !password || !role) {
-      res.status(400).json({ error: "email, name, password, role are required" });
+    if (!username || !name || !password || !role) {
+      res.status(400).json({ error: "username, name, password, role are required" });
       return;
     }
 
-    const user = await createUserService({ email, name, password, role });
+    const user = await createUserService({ username, email, phone, name, password, role });
 
-    res.status(201).json({ id: user.id, email: user.email, name: user.name, role: user.role });
+    res.status(201).json({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      name: user.name,
+      role: user.role
+    });
   } catch (err) {
     next(err);
   }

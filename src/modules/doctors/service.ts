@@ -1,4 +1,6 @@
-import type { Weekday } from "@prisma/client";
+import type { Role, Weekday } from "@prisma/client";
+import { hashPassword } from "../../helpers/password";
+import { prisma } from "../../helpers/prisma";
 import { uploadImageToCloudinary } from "../../helpers/cloudinary";
 import { createDoctor, findDepartmentById, findSpecialtyByName, listDoctors } from "./db";
 
@@ -63,6 +65,8 @@ export const createDoctorService = async (input: {
   description?: string;
   schedules?: ScheduleItemInput[];
   image?: Express.Multer.File;
+  username?: string;
+  password?: string;
 }) => {
   const department = await findDepartmentById(input.departmentId);
   if (!department) {
@@ -89,14 +93,65 @@ export const createDoctorService = async (input: {
 
   const schedules = normalizeSchedules(input.schedules || []);
 
-  return createDoctor({
-    name: input.name,
-    departmentId: input.departmentId,
-    specialtyId: specialty.id,
-    contactNumber: input.contactNumber,
-    description: input.description,
-    profileImageUrl,
-    schedules
+  if ((input.username && !input.password) || (!input.username && input.password)) {
+    throw new Error("username and password must be provided together");
+  }
+
+  if (!input.username) {
+    return createDoctor({
+      name: input.name,
+      departmentId: input.departmentId,
+      specialtyId: specialty.id,
+      contactNumber: input.contactNumber,
+      description: input.description,
+      profileImageUrl,
+      schedules
+    });
+  }
+
+  const passwordHash = await hashPassword(input.password!);
+  const doctorRole: Role = "DOCTOR";
+
+  return prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: {
+        username: input.username!,
+        name: input.name,
+        passwordHash,
+        role: doctorRole
+      }
+    });
+
+    const doctor = await tx.doctor.create({
+      data: {
+        name: input.name,
+        departmentId: input.departmentId,
+        specialtyId: specialty.id,
+        contactNumber: input.contactNumber,
+        description: input.description,
+        profileImageUrl,
+        schedules: schedules.length > 0 ? { createMany: { data: schedules } } : undefined
+      },
+      include: {
+        department: true,
+        specialty: true,
+        schedules: {
+          orderBy: [{ day: "asc" }, { startTime: "asc" }]
+        }
+      }
+    });
+
+    return {
+      ...doctor,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        phone: user.phone,
+        name: user.name,
+        role: user.role
+      }
+    };
   });
 };
 

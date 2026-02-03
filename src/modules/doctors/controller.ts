@@ -9,7 +9,9 @@ export const createDoctorController = async (req: Request, res: Response, next: 
       specialty,
       contact_number: contactNumber,
       description,
-      schedules
+      schedules,
+      username,
+      password
     } = req.body as {
       name?: string;
       department_id?: string;
@@ -17,12 +19,19 @@ export const createDoctorController = async (req: Request, res: Response, next: 
       contact_number?: string;
       description?: string;
       schedules?: Array<Record<string, { start_time?: string; end_time?: string }[]>> | string;
+      username?: string;
+      password?: string;
     };
 
     if (!name || !departmentId || !specialty || !contactNumber) {
       res.status(400).json({
         error: "name, department_id, specialty, and contact_number are required"
       });
+      return;
+    }
+
+    if ((username && !password) || (!username && password)) {
+      res.status(400).json({ error: "username and password must be provided together" });
       return;
     }
 
@@ -47,7 +56,9 @@ export const createDoctorController = async (req: Request, res: Response, next: 
       contactNumber,
       description,
       schedules: normalizedSchedules,
-      image: req.file || undefined
+      image: req.file || undefined,
+      username,
+      password
     });
 
     res.status(201).json(doctor);

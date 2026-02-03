@@ -4,7 +4,7 @@ import { verifyToken } from "../helpers/jwt";
 export type AuthUser = {
   id: string;
   role: "ADMIN" | "RECEPTIONIST" | "DOCTOR";
-  email: string;
+  identifier: string;
 };
 
 declare module "express-serve-static-core" {
@@ -24,7 +24,7 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
 
   try {
     const payload = verifyToken(token);
-    req.user = { id: payload.sub, role: payload.role, email: payload.email };
+    req.user = { id: payload.sub, role: payload.role, identifier: payload.identifier };
     next();
   } catch {
     res.status(401).json({ error: "Invalid or expired token" });
