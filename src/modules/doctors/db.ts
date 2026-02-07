@@ -1,5 +1,5 @@
 import { prisma } from "../../helpers/prisma";
-import type { Weekday } from "@prisma/client";
+import type { Weekday, Prisma } from "@prisma/client";
 
 export type DoctorScheduleInput = {
   day: Weekday;
@@ -52,8 +52,28 @@ export const createDoctor = (input: {
   });
 };
 
-export const listDoctors = () => {
+const buildDoctorSearchFilter = (search?: string): Prisma.DoctorWhereInput => {
+  if (!search) {
+    return {};
+  }
+
+  const mode: Prisma.QueryMode = "insensitive";
+
+  return {
+    OR: [
+      { name: { contains: search, mode } },
+      { contactNumber: { contains: search, mode } },
+      { department: { name: { contains: search, mode } } },
+      { specialty: { name: { contains: search, mode } } }
+    ]
+  };
+};
+
+export const listDoctors = (input: { skip: number; take: number; search?: string }) => {
   return prisma.doctor.findMany({
+    where: buildDoctorSearchFilter(input.search),
+    skip: input.skip,
+    take: input.take,
     orderBy: { name: "asc" },
     include: {
       department: true,
@@ -62,5 +82,11 @@ export const listDoctors = () => {
         orderBy: [{ day: "asc" }, { startTime: "asc" }]
       }
     }
+  });
+};
+
+export const countDoctors = (input: { search?: string }) => {
+  return prisma.doctor.count({
+    where: buildDoctorSearchFilter(input.search)
   });
 };

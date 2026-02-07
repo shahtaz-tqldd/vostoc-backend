@@ -2,7 +2,7 @@ import type { Role, Weekday } from "@prisma/client";
 import { hashPassword } from "../../helpers/password";
 import { prisma } from "../../helpers/prisma";
 import { uploadImageToCloudinary } from "../../helpers/cloudinary";
-import { createDoctor, findDepartmentById, findSpecialtyByName, listDoctors } from "./db";
+import { countDoctors, createDoctor, findDepartmentById, findSpecialtyByName, listDoctors } from "./db";
 
 const dayMap: Record<string, Weekday> = {
   mon: "MON",
@@ -155,6 +155,19 @@ export const createDoctorService = async (input: {
   });
 };
 
-export const listDoctorsService = async () => {
-  return listDoctors();
+export const listDoctorsService = async (input: { page: number; pageSize: number; search?: string }) => {
+  const skip = (input.page - 1) * input.pageSize;
+  const [data, total] = await Promise.all([
+    listDoctors({ skip, take: input.pageSize, search: input.search }),
+    countDoctors({ search: input.search })
+  ]);
+
+  return {
+    data,
+    meta: {
+      page: input.page,
+      pageSize: input.pageSize,
+      total
+    }
+  };
 };

@@ -71,10 +71,30 @@ export const createDoctorController = async (req: Request, res: Response, next: 
   }
 };
 
-export const listDoctorsController = async (_req: Request, res: Response, next: NextFunction) => {
+export const listDoctorsController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const doctors = await listDoctorsService();
-    res.json(doctors);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const pageSize = Math.max(1, Math.min(100, Number(req.query.pageSize) || 20));
+
+    let search: string | undefined;
+    const rawFilters = req.query.filters;
+
+    if (typeof rawFilters === "string" && rawFilters.trim().length > 0) {
+      try {
+        const parsed = JSON.parse(rawFilters) as { search?: string };
+        search = parsed.search?.trim() || undefined;
+      } catch {
+        res.status(400).json({ error: "filters must be valid JSON" });
+        return;
+      }
+    }
+
+    if (!search && typeof req.query.search === "string") {
+      search = req.query.search.trim() || undefined;
+    }
+
+    const result = await listDoctorsService({ page, pageSize, search });
+    res.json(result);
   } catch (err) {
     next(err);
   }

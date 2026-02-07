@@ -7,6 +7,7 @@ import appointmentsRouter from "./modules/appointments/routes";
 import authRouter from "./modules/auth/routes";
 import departmentsRouter from "./modules/departments/routes";
 import doctorsRouter from "./modules/doctors/routes";
+import receptionistsRouter from "./modules/receptionists/routes";
 import usersRouter from "./modules/users/routes";
 import { env } from "./config/env";
 import { swaggerSpec } from "./config/swagger";
@@ -32,6 +33,7 @@ app.use("/appointments", appointmentsRouter);
 app.use("/auth", authRouter);
 app.use("/departments", departmentsRouter);
 app.use("/doctors", doctorsRouter);
+app.use("/receptionists", receptionistsRouter);
 app.use("/users", usersRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

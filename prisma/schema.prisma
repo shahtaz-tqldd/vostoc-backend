@@ -34,6 +34,7 @@ model Department {
   name        String      @unique
   specialties Specialty[]
   doctors     Doctor[]
+  receptionists Receptionist[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
@@ -84,6 +85,20 @@ model Doctor {
   department      Department       @relation(fields: [departmentId], references: [id])
   specialty       Specialty        @relation(fields: [specialtyId], references: [id])
   schedules       DoctorSchedule[]
+}
+
+model Receptionist {
+  id              String     @id @default(uuid())
+  name            String
+  departmentId    String
+  contactNumber   String     @unique
+  shift           String
+  description     String?
+  profileImageUrl String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  department Department @relation(fields: [departmentId], references: [id])
 }
 
 model DoctorSchedule {
