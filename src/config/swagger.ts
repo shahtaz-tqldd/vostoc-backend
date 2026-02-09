@@ -118,13 +118,26 @@ const swaggerDefinition = {
               schema: {
                 type: "object",
                 properties: {
-                  title: { type: "string" },
-                  startsAt: { type: "string", format: "date-time" },
-                  endsAt: { type: "string", format: "date-time" },
-                  status: { type: "string" },
-                  doctorId: { type: "string" }
+                  patientName: { type: "string" },
+                  patientPhone: { type: "string" },
+                  patientAge: { type: "integer" },
+                  patientGender: { type: "string" },
+                  patientNotes: { type: "string" },
+                  department: { type: "string", format: "uuid" },
+                  doctorId: { type: "string", format: "uuid" },
+                  appointmentDate: { type: "string", format: "date" },
+                  appointmentTime: { type: "string", example: "21:38" }
                 },
-                required: ["title", "startsAt", "endsAt"]
+                required: [
+                  "patientName",
+                  "patientPhone",
+                  "patientAge",
+                  "patientGender",
+                  "department",
+                  "doctorId",
+                  "appointmentDate",
+                  "appointmentTime"
+                ]
               }
             }
           }

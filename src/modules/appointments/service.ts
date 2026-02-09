@@ -1,22 +1,62 @@
-import { createAppointment, listAppointments } from "./db";
+import { countAppointments, createAppointment, findPatientByContactNumber, listAppointments } from "./db";
 
-export const listAppointmentsService = async (user: { id: string; role: "ADMIN" | "RECEPTIONIST" | "DOCTOR" }) => {
+export const listAppointmentsService = async (
+  { user, page, pageSize, search }
+    : {
+      user: { id: string; role: "ADMIN" | "RECEPTIONIST" | "DOCTOR" };
+      page: number;
+      pageSize: number;
+      search?: string
+    }) => {
   const doctorId = user.role === "DOCTOR" ? user.id : undefined;
-  return listAppointments(doctorId);
+  const skip = (page - 1) * pageSize;
+
+  const [data, total] = await Promise.all([
+    listAppointments({
+      doctorId,
+      skip,
+      take: pageSize,
+      search
+    }),
+    countAppointments({ doctorId, search })
+  ]);
+
+  return {
+    data,
+    meta: {
+      page,
+      pageSize,
+      total
+    }
+  };
 };
 
 export const createAppointmentService = async (input: {
-  title: string;
-  startsAt: string;
-  endsAt: string;
-  status?: string;
-  doctorId?: string | null;
+  patientName: string;
+  patientPhone: string;
+  patientAge: number;
+  patientGender: string;
+  patientNotes?: string;
+  departmentId: string;
+  doctorId: string;
+  appointmentDate: string;
+  appointmentTime: string;
 }) => {
+  const parsedDate = new Date(`${input.appointmentDate}T00:00:00.000Z`);
+
   return createAppointment({
-    title: input.title,
-    startsAt: new Date(input.startsAt),
-    endsAt: new Date(input.endsAt),
-    status: input.status || "scheduled",
-    doctorId: input.doctorId ?? null
+    patientName: input.patientName,
+    patientPhone: input.patientPhone,
+    patientAge: input.patientAge,
+    patientGender: input.patientGender,
+    patientNotes: input.patientNotes,
+    departmentId: input.departmentId,
+    doctorId: input.doctorId,
+    appointmentDate: parsedDate,
+    appointmentTime: input.appointmentTime
   });
+};
+
+export const getPatientByContactNumberService = async (contactNumber: string) => {
+  return findPatientByContactNumber(contactNumber);
 };

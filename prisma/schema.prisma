@@ -8,15 +8,28 @@ datasource db {
 }
 
 model Appointment {
-  id          String   @id @default(uuid())
-  title       String
-  startsAt    DateTime
-  endsAt      DateTime
-  status      String   @default("scheduled")
-  doctorId    String?
-  doctor      User?    @relation("DoctorAppointments", fields: [doctorId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(uuid())
+  patientName     String
+  patientPhone    String
+  patientAge      Int
+  patientGender   String
+  patientNotes    String?
+  departmentId    String
+  doctorId        String
+  appointmentDate DateTime @db.Date
+  appointmentTime String
+  status          String   @default("new")
+  latest_vitals   Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  patient    Patient    @relation(fields: [patientPhone], references: [phoneNumber])
+  department Department @relation(fields: [departmentId], references: [id])
+  doctor     Doctor     @relation(fields: [doctorId], references: [id])
+
+  @@index([doctorId, appointmentDate, appointmentTime])
+  @@index([departmentId, appointmentDate])
+  @@index([patientPhone])
 }
 
 enum Weekday {
@@ -34,6 +47,7 @@ model Department {
   name        String      @unique
   specialties Specialty[]
   doctors     Doctor[]
+  appointments Appointment[]
   receptionists Receptionist[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -67,8 +81,6 @@ model User {
   role         Role
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-
-  doctorAppointments Appointment[] @relation("DoctorAppointments")
 }
 
 model Doctor {
@@ -85,6 +97,19 @@ model Doctor {
   department      Department       @relation(fields: [departmentId], references: [id])
   specialty       Specialty        @relation(fields: [specialtyId], references: [id])
   schedules       DoctorSchedule[]
+  appointments    Appointment[]
+}
+
+model Patient {
+  phoneNumber String        @id
+  name        String
+  age         Int
+  gender      String
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  appointments Appointment[]
 }
 
 model Receptionist {
