@@ -52,26 +52,40 @@ export const createDoctor = (input: {
   });
 };
 
-const buildDoctorSearchFilter = (search?: string): Prisma.DoctorWhereInput => {
-  if (!search) {
-    return {};
+const buildDoctorSearchFilter = (input: { search?: string; departmentIds?: string[] }): Prisma.DoctorWhereInput => {
+  const where: Prisma.DoctorWhereInput = {};
+  const filters: Prisma.DoctorWhereInput[] = [];
+
+  if (input.departmentIds && input.departmentIds.length > 0) {
+    filters.push({
+      departmentId: {
+        in: input.departmentIds
+      }
+    });
   }
 
-  const mode: Prisma.QueryMode = "insensitive";
+  if (input.search) {
+    const mode: Prisma.QueryMode = "insensitive";
+    filters.push({
+      OR: [
+        { name: { contains: input.search, mode } },
+        { contactNumber: { contains: input.search, mode } },
+        { department: { name: { contains: input.search, mode } } },
+        { specialty: { name: { contains: input.search, mode } } }
+      ]
+    });
+  }
 
-  return {
-    OR: [
-      { name: { contains: search, mode } },
-      { contactNumber: { contains: search, mode } },
-      { department: { name: { contains: search, mode } } },
-      { specialty: { name: { contains: search, mode } } }
-    ]
-  };
+  if (filters.length > 0) {
+    where.AND = filters;
+  }
+
+  return where;
 };
 
-export const listDoctors = (input: { skip: number; take: number; search?: string }) => {
+export const listDoctors = (input: { skip: number; take: number; search?: string; departmentIds?: string[] }) => {
   return prisma.doctor.findMany({
-    where: buildDoctorSearchFilter(input.search),
+    where: buildDoctorSearchFilter({ search: input.search, departmentIds: input.departmentIds }),
     skip: input.skip,
     take: input.take,
     orderBy: { name: "asc" },
@@ -85,8 +99,8 @@ export const listDoctors = (input: { skip: number; take: number; search?: string
   });
 };
 
-export const countDoctors = (input: { search?: string }) => {
+export const countDoctors = (input: { search?: string; departmentIds?: string[] }) => {
   return prisma.doctor.count({
-    where: buildDoctorSearchFilter(input.search)
+    where: buildDoctorSearchFilter({ search: input.search, departmentIds: input.departmentIds })
   });
 };

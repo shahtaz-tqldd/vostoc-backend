@@ -1,7 +1,15 @@
 import { prisma } from "../../helpers/prisma";
 
-export const listDepartments = () => {
+export const listDepartments = (departmentIds?: string[]) => {
   return prisma.department.findMany({
+    where:
+      departmentIds && departmentIds.length > 0
+        ? {
+            id: {
+              in: departmentIds
+            }
+          }
+        : undefined,
     orderBy: { name: "asc" },
     include: { specialties: { orderBy: { name: "asc" } } }
   });

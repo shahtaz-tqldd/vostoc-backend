@@ -93,7 +93,7 @@ export const listDoctorsController = async (req: Request, res: Response, next: N
       search = req.query.search.trim() || undefined;
     }
 
-    const result = await listDoctorsService({ page, pageSize, search });
+    const result = await listDoctorsService({ user: req.user!, page, pageSize, search });
     res.json(result);
   } catch (err) {
     next(err);

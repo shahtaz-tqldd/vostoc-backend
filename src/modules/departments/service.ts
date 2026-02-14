@@ -1,7 +1,17 @@
 import { createDepartment, createSpecialty, deleteDepartment, listDepartments, listSpecialties } from "./db";
+import { findReceptionistDepartmentIdsByUserId } from "../receptionists/db";
 
-export const listDepartmentsService = async () => {
-  return listDepartments();
+export const listDepartmentsService = async (user: { id: string; role: "ADMIN" | "RECEPTIONIST" | "DOCTOR" }) => {
+  if (user.role !== "RECEPTIONIST") {
+    return listDepartments();
+  }
+
+  const departmentIds = await findReceptionistDepartmentIdsByUserId(user.id);
+  if (departmentIds.length === 0) {
+    return [];
+  }
+
+  return listDepartments(departmentIds);
 };
 
 export const createDepartmentService = async (input: { name: string; specialties?: string[] }) => {

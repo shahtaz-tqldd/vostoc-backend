@@ -5,8 +5,7 @@ export const createReceptionistController = async (req: Request, res: Response, 
   try {
     const {
       name,
-      department_id: departmentIdRaw,
-      department: departmentFallback,
+      department_ids: departmentIds,
       contact_number: contactNumber,
       shift,
       description,
@@ -14,8 +13,7 @@ export const createReceptionistController = async (req: Request, res: Response, 
       password
     } = req.body as {
       name?: string;
-      department_id?: string;
-      department?: string;
+      department_ids?: string[];
       contact_number?: string;
       shift?: string;
       description?: string;
@@ -23,18 +21,19 @@ export const createReceptionistController = async (req: Request, res: Response, 
       password?: string;
     };
 
-    const departmentId = departmentIdRaw || departmentFallback;
+    const normalizedDepartmentIds =
+      Array.isArray(departmentIds) ? departmentIds.map((id) => id?.trim()).filter(Boolean) : [];
 
-    if (!name || !departmentId || !contactNumber || !shift || !username || !password) {
+    if (!name || normalizedDepartmentIds.length === 0 || !contactNumber || !shift || !username || !password) {
       res.status(400).json({
-        error: "name, department_id (or department), contact_number, shift, username, and password are required"
+        error: "name, department_ids, contact_number, shift, username, and password are required"
       });
       return;
     }
 
     const receptionist = await createReceptionistService({
       name: name.trim(),
-      departmentId,
+      departmentIds: normalizedDepartmentIds,
       contactNumber: contactNumber.trim(),
       shift: shift.trim(),
       description: description?.trim() || undefined,

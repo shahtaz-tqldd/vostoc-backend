@@ -2,11 +2,11 @@ import type { Role } from "@prisma/client";
 import { hashPassword } from "../../helpers/password";
 import { prisma } from "../../helpers/prisma";
 import { uploadImageToCloudinary } from "../../helpers/cloudinary";
-import { countReceptionists, findDepartmentById, listReceptionists } from "./db";
+import { countReceptionists, findDepartmentsByIds, listReceptionists } from "./db";
 
 export const createReceptionistService = async (input: {
   name: string;
-  departmentId: string;
+  departmentIds: string[];
   contactNumber: string;
   shift: string;
   description?: string;
@@ -14,9 +14,10 @@ export const createReceptionistService = async (input: {
   username: string;
   password: string;
 }) => {
-  const department = await findDepartmentById(input.departmentId);
-  if (!department) {
-    throw new Error("Department not found");
+  const uniqueDepartmentIds = [...new Set(input.departmentIds)];
+  const departments = await findDepartmentsByIds(uniqueDepartmentIds);
+  if (departments.length !== uniqueDepartmentIds.length) {
+    throw new Error("One or more departments were not found");
   }
 
   let profileImageUrl: string | undefined;
@@ -43,20 +44,32 @@ export const createReceptionistService = async (input: {
 
     const receptionist = await tx.receptionist.create({
       data: {
+        userId: user.id,
         name: input.name,
-        departmentId: input.departmentId,
         contactNumber: input.contactNumber,
         shift: input.shift,
         description: input.description,
-        profileImageUrl
+        profileImageUrl,
+        departments: {
+          connect: uniqueDepartmentIds.map((departmentId) => ({ id: departmentId }))
+        }
       },
       include: {
-        department: true
+        departments: true
       }
     });
 
     return {
-      ...receptionist,
+      id: receptionist.id,
+      name: receptionist.name,
+      contactNumber: receptionist.contactNumber,
+      shift: receptionist.shift,
+      description: receptionist.description,
+      profileImageUrl: receptionist.profileImageUrl,
+      createdAt: receptionist.createdAt,
+      updatedAt: receptionist.updatedAt,
+      departmentIds: receptionist.departments.map((item) => item.id),
+      departments: receptionist.departments,
       user: {
         id: user.id,
         username: user.username,
@@ -77,7 +90,18 @@ export const listReceptionistsService = async (input: { page: number; pageSize: 
   ]);
 
   return {
-    data,
+    data: data.map((receptionist) => ({
+      id: receptionist.id,
+      name: receptionist.name,
+      contactNumber: receptionist.contactNumber,
+      shift: receptionist.shift,
+      description: receptionist.description,
+      profileImageUrl: receptionist.profileImageUrl,
+      createdAt: receptionist.createdAt,
+      updatedAt: receptionist.updatedAt,
+      departmentIds: receptionist.departments.map((item) => item.id),
+      departments: receptionist.departments
+    })),
     meta: {
       page: input.page,
       pageSize: input.pageSize,

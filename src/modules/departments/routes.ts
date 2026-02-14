@@ -10,7 +10,7 @@ import {
 
 const router = Router();
 
-router.get("/", requireAuth, listDepartmentsController);
+router.get("/", requireAuth, requireRole("ADMIN", "RECEPTIONIST"), listDepartmentsController);
 router.post("/", requireAuth, requireRole("ADMIN"), createDepartmentController);
 router.delete("/:departmentId", requireAuth, requireRole("ADMIN"), deleteDepartmentController);
 

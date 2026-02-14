@@ -3,6 +3,7 @@ import { hashPassword } from "../../helpers/password";
 import { prisma } from "../../helpers/prisma";
 import { uploadImageToCloudinary } from "../../helpers/cloudinary";
 import { countDoctors, createDoctor, findDepartmentById, findSpecialtyByName, listDoctors } from "./db";
+import { findReceptionistDepartmentIdsByUserId } from "../receptionists/db";
 
 const dayMap: Record<string, Weekday> = {
   mon: "MON",
@@ -155,11 +156,30 @@ export const createDoctorService = async (input: {
   });
 };
 
-export const listDoctorsService = async (input: { page: number; pageSize: number; search?: string }) => {
+export const listDoctorsService = async (input: {
+  user: { id: string; role: "ADMIN" | "RECEPTIONIST" | "DOCTOR" };
+  page: number;
+  pageSize: number;
+  search?: string;
+}) => {
   const skip = (input.page - 1) * input.pageSize;
+  const receptionistDepartmentIds =
+    input.user.role === "RECEPTIONIST" ? await findReceptionistDepartmentIdsByUserId(input.user.id) : undefined;
+
+  if (input.user.role === "RECEPTIONIST" && (!receptionistDepartmentIds || receptionistDepartmentIds.length === 0)) {
+    return {
+      data: [],
+      meta: {
+        page: input.page,
+        pageSize: input.pageSize,
+        total: 0
+      }
+    };
+  }
+
   const [data, total] = await Promise.all([
-    listDoctors({ skip, take: input.pageSize, search: input.search }),
-    countDoctors({ search: input.search })
+    listDoctors({ skip, take: input.pageSize, search: input.search, departmentIds: receptionistDepartmentIds }),
+    countDoctors({ search: input.search, departmentIds: receptionistDepartmentIds })
   ]);
 
   return {

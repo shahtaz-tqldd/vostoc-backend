@@ -7,9 +7,9 @@ import {
   listSpecialtiesService
 } from "./service";
 
-export const listDepartmentsController = async (_req: Request, res: Response, next: NextFunction) => {
+export const listDepartmentsController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const departments = await listDepartmentsService();
+    const departments = await listDepartmentsService(req.user!);
     res.json(departments);
   } catch (err) {
     next(err);
